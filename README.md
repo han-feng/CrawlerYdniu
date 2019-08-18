@@ -1,3 +1,3 @@
-# 资源同步工具
+# Crawler Ydniu
 
-[![Build Status](https://travis-ci.org/han-feng/resourceSync.svg?branch=master)](https://travis-ci.org/han-feng/resourceSync)
+[![Build Status](https://travis-ci.org/han-feng/CrawlerYdniu.svg?branch=master)](https://travis-ci.org/han-feng/CrawlerYdniu)
