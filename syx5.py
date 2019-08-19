@@ -7,9 +7,9 @@ import sys
 import json
 import zipfile
 from datetime import datetime
-import pytz
 
-# requirements: requests bs4 lxml
+# requirements: pytz, requests, bs4, lxml
+import pytz
 import requests
 from bs4 import BeautifulSoup
 
@@ -22,11 +22,29 @@ provinces = {"sd": "山东", "gd": "广东", "js": "江苏", "jx": "江西", "sh
 changedFiles = {}
 
 
-#
+# 批量建立文件夹
 def makeDirs(dirPath):
     if not os.path.exists(dirPath):
         os.makedirs(dirPath)
+
 # makeDirs end
+
+
+# 获取省份字典数据
+def getProvinces():
+    url = "".join([baseUrl, servicePrefix, "sd/"])
+    response = requests.get(url)
+    soup = BeautifulSoup(response.text, 'lxml')
+    links = soup.select("#divMain>div.Lottery>li:nth-child(1)>label>a")
+    links += soup.select(
+        "#divMain>div.Lottery>li:nth-child(1)>label>div>a")
+    ps = {}
+    for link in links:
+        name = link.get_text().strip()[:-4]
+        id = link.get("href").strip()[11:-1]
+        ps[id] = name
+    return ps
+# getProvinces end
 
 
 # 更新 Dict 类型数据文件
@@ -47,9 +65,13 @@ def updateDictFile(file, dict):
         json.dump(data, f)
     # 记录本次改变文件
     changedFiles[jsonFile] = {
-        "fileName": jsonFile,
-        "createTime": datetime.now(pytz.timezone("Asia/Shanghai")).strftime("%Y-%m-%d %H:%M:%S")
+        "fileName":
+        jsonFile,
+        "createTime":
+        datetime.now(
+            pytz.timezone("Asia/Shanghai")).strftime("%Y-%m-%d %H:%M:%S")
     }
+
 # updateDictFile end
 
 
@@ -70,6 +92,7 @@ def getProvinceData(province):
         monthDatas[key] = values
     #
     return datas
+
 # getProvinceData end
 
 
@@ -109,25 +132,30 @@ def updateIndexFile():
     #
     with open(outDir + "index.html", "w", encoding='utf-8') as f:
         f.write(lines)
+
 # updateIndexFile end
 
 
 # 更新指定省的数据
 def updateProvinceData(province):
-    provinceName = provinces[province]
     datas = getProvinceData(province)
     # 按月份分文件处理
     for month in datas.keys():
         fileName = province + month
         data = datas[month]
         updateDictFile(fileName, data)
+
 # updateProvinceData end
 
 
 # main
 makeDirs(outDir)
 
+provinces.update(getProvinces())
+
 for province in provinces.keys():
     updateProvinceData(province)  # 测试
 
 updateIndexFile()
+
+# main end

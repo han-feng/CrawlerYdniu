@@ -1,4 +1,4 @@
+pytz
 requests
 bs4
 lxml
-pytz
