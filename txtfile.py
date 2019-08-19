@@ -17,7 +17,7 @@ def loadDict(filePath):
 # loadDict end
 
 
-# 转换 dict 为文本内容
+# 转换 Dictionary 为文本内容
 def _dictToLines(dict):
     lines = []
     for key in dict.keys():
@@ -61,22 +61,23 @@ def _makeDirs(dirPath):
 
 
 # Test
-_makeDirs("target/test")
+def _test():
+    _makeDirs("target/test")
 
-dict = {}
-for n in range(10):
-    value = []
-    for i in range(n, n+10):
-        value.append("V"+str(i))
-    dict["K"+str(n)] = value
-saveDict("target/test/test.txt", dict)
-print(loadDict("target/test/test.txt"))
+    dict = {}
+    for n in range(10):
+        value = []
+        for i in range(n, n+10):
+            value.append("V"+str(i))
+        dict["K"+str(n)] = value
+    saveDict("target/test/test.txt", dict)
+    print(loadDict("target/test/test.txt"))
 
-dict = {}
-for n in range(5, 15):
-    value = []
-    for i in range(n, n+10):
-        value.append("V"+str(i))
-    dict["K"+str(n)] = value
-appendDict("target/test/test.txt", dict)
-print(loadDict("target/test/test.txt"))
+    dict = {}
+    for n in range(5, 15):
+        value = []
+        for i in range(n, n+10):
+            value.append("V"+str(i))
+        dict["K"+str(n)] = value
+    appendDict("target/test/test.txt", dict)
+    print(loadDict("target/test/test.txt"))
