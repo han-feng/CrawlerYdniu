@@ -1,3 +1,5 @@
+build/
+
 # Maven
 target/
 coverage/
@@ -13,6 +15,10 @@ buildNumber.properties
 
 # MacOS
 .DS_Store
+
+# py
+__pycache__/
+*.spec
 
 # nodejs
 node_modules
