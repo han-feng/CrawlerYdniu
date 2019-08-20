@@ -50,29 +50,29 @@ def getProvinces():
 
 
 # 更新 Dict 类型数据文件
-def updateDictFile(file, dict):
-    jsonFile = file + ".json"
-    filePath = outDir + jsonFile
-    if os.path.exists(filePath):
-        try:
-            with open(filePath, "r", encoding='utf-8') as f:
-                data = json.load(f)
-        except:
-            data = {}
-    else:
-        data = {}
-    #
-    data.update(dict)
-    with open(filePath, "w", encoding='utf-8') as f:
-        json.dump(data, f)
-    # 记录本次改变文件
-    changedFiles[jsonFile] = {
-        "fileName":
-        jsonFile,
-        "createTime":
-        datetime.now(
-            pytz.timezone("Asia/Shanghai")).strftime("%Y-%m-%d %H:%M:%S")
-    }
+# def updateDictFile(file, dict):
+#     jsonFile = file + ".json"
+#     filePath = outDir + jsonFile
+#     if os.path.exists(filePath):
+#         try:
+#             with open(filePath, "r", encoding='utf-8') as f:
+#                 data = json.load(f)
+#         except:
+#             data = {}
+#     else:
+#         data = {}
+#     #
+#     data.update(dict)
+#     with open(filePath, "w", encoding='utf-8') as f:
+#         json.dump(data, f)
+#     # 记录本次改变文件
+#     changedFiles[jsonFile] = {
+#         "fileName":
+#         jsonFile,
+#         "createTime":
+#         datetime.now(
+#             pytz.timezone("Asia/Shanghai")).strftime("%Y-%m-%d %H:%M:%S")
+#     }
 # updateDictFile end
 
 
@@ -162,9 +162,8 @@ def updateProvinceData(province):
     for month in datas.keys():
         fileName = province + month
         data = datas[month]
-        updateDictFile(fileName, data)
+        # updateDictFile(fileName, data)
         updateDictTxtFile(fileName, data)
-
 # updateProvinceData end
 
 

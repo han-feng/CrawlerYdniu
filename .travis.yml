@@ -8,8 +8,8 @@ cache:
     - target
 
 script:
+  - python delJsonData.py
   - python syx5.py
-  - python check.py
 
 deploy:
   provider: pages
