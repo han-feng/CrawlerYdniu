@@ -8,8 +8,8 @@ cache:
     - target
 
 script:
-  - python initTextFile.py
   - python syx5.py
+  - python check.py
 
 deploy:
   provider: pages
