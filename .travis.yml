@@ -8,6 +8,7 @@ cache:
     - target
 
 script:
+  - python initTextFile.py
   - python syx5.py
 
 deploy:

@@ -8,6 +8,8 @@ import json
 import zipfile
 from datetime import datetime
 
+import txtfile
+
 # requirements: pytz, requests, bs4, lxml
 import pytz
 import requests
@@ -71,8 +73,23 @@ def updateDictFile(file, dict):
         datetime.now(
             pytz.timezone("Asia/Shanghai")).strftime("%Y-%m-%d %H:%M:%S")
     }
-
 # updateDictFile end
+
+
+# 更新 Dict 类型数据文件
+def updateDictTxtFile(file, dict):
+    txtFile = file + ".txt"
+    filePath = outDir + txtFile
+    txtfile.appendDict(filePath, dict)
+    # 记录本次改变文件
+    changedFiles[txtFile] = {
+        "fileName":
+        txtFile,
+        "createTime":
+        datetime.now(
+            pytz.timezone("Asia/Shanghai")).strftime("%Y-%m-%d %H:%M:%S")
+    }
+# updateDictTxtFile end
 
 
 # 获取指定省的数据
@@ -111,8 +128,10 @@ def updateIndexFile():
     with open(indexJsonFile, "w", encoding='utf-8') as f:
         json.dump(data, f)
     #
+    items = list(data.values())
+    items.sort(key=lambda x: x['fileName'])
     links = "  <ul>\n"
-    for item in data.values():
+    for item in items:
         t = item["createTime"]
         file = item["fileName"]
         links += '    <li><a href="%s">%s (%s)</a></li>\n' % (file, file, t)
@@ -144,6 +163,7 @@ def updateProvinceData(province):
         fileName = province + month
         data = datas[month]
         updateDictFile(fileName, data)
+        updateDictTxtFile(fileName, data)
 
 # updateProvinceData end
 
