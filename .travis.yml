@@ -8,7 +8,6 @@ cache:
     - target
 
 script:
-  - rm -f target/index.json
   - python syx5.py
 
 deploy:
