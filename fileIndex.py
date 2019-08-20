@@ -2,7 +2,6 @@
 # python 3.7
 # 指定目录下文件索引页生成工具
 import os
-import json
 from datetime import datetime
 
 # requirements: pytz
@@ -13,19 +12,13 @@ import pytz
 def create(baseDir):
     filenames = _getTxtFiles(baseDir)
     filenames.sort()
-
-    # 加载 index.json
-    with open(os.path.join(baseDir, "index.json"), "r", encoding='utf-8') as f:
-        data = json.load(f)
-
     links = "  <ul>\n"
     for filename in filenames:
         t = os.stat(os.path.join(baseDir, filename)).st_mtime
         t = datetime.fromtimestamp(t, pytz.timezone(
-            "Asia/Shanghai")).strftime("%Y-%m-%d %H:%M:%S %Z%z")
-        t2 = data[filename]["createTime"]
-        links += '    <li><a href="%s">%s</a> (%s - %s)</li>\n' % (
-            filename, filename, t, t2)
+            "Asia/Shanghai")).strftime("%Y-%m-%d %H:%M:%S")
+        links += '    <li><a href="%s">%s</a>(%s)</li>\n' % (
+            filename, filename, t)
     links += "  </ul>"
     lines = '''
 <html>

@@ -22,7 +22,6 @@ servicePrefix = "syx5"
 outDir = "target/"
 
 provinces = {"sd": "山东", "gd": "广东", "js": "江苏", "jx": "江西", "sh": "上海"}
-changedFiles = {}
 
 
 # 批量建立文件夹
@@ -50,22 +49,6 @@ def getProvinces():
 # getProvinces end
 
 
-# 更新 Dict 类型数据文件
-def updateDictTxtFile(file, dict):
-    txtFile = file + ".txt"
-    filePath = outDir + txtFile
-    txtfile.appendDict(filePath, dict)
-    # 记录本次改变文件
-    changedFiles[txtFile] = {
-        "fileName":
-        txtFile,
-        "createTime":
-        datetime.now(
-            pytz.timezone("Asia/Shanghai")).strftime("%Y-%m-%d %H:%M:%S %Z%z")
-    }
-# updateDictTxtFile end
-
-
 # 获取指定省的数据
 def getProvinceData(province):
     url = "".join([baseUrl, servicePrefix, province, "/"])
@@ -87,32 +70,14 @@ def getProvinceData(province):
 # getProvinceData end
 
 
-# 更新输出文件索引
-def updateIndexFile():
-    indexJsonFile = outDir + "index.json"
-    if os.path.exists(indexJsonFile):
-        try:
-            with open(indexJsonFile, "r", encoding='utf-8') as f:
-                data = json.load(f)
-        except:
-            data = {}
-    else:
-        data = {}
-    data.update(changedFiles)
-    with open(indexJsonFile, "w", encoding='utf-8') as f:
-        json.dump(data, f)
-# updateIndexFile end
-
-
 # 更新指定省的数据
 def updateProvinceData(province):
     datas = getProvinceData(province)
     # 按月份分文件处理
     for month in datas.keys():
-        fileName = province + month
+        fileName = province + month + ".txt"
         data = datas[month]
-        # updateDictFile(fileName, data)
-        updateDictTxtFile(fileName, data)
+        txtfile.appendDict(os.path.join(outDir, fileName), data)
 # updateProvinceData end
 
 
@@ -124,7 +89,6 @@ provinces.update(getProvinces())
 for province in provinces.keys():
     updateProvinceData(province)
 
-updateIndexFile()
 fileIndex.create(outDir)
 
 # main end
