@@ -9,6 +9,7 @@ import zipfile
 from datetime import datetime
 
 import txtfile
+import fileIndex
 
 # requirements: pytz, requests, bs4, lxml
 import pytz
@@ -50,33 +51,6 @@ def getProvinces():
 
 
 # 更新 Dict 类型数据文件
-# def updateDictFile(file, dict):
-#     jsonFile = file + ".json"
-#     filePath = outDir + jsonFile
-#     if os.path.exists(filePath):
-#         try:
-#             with open(filePath, "r", encoding='utf-8') as f:
-#                 data = json.load(f)
-#         except:
-#             data = {}
-#     else:
-#         data = {}
-#     #
-#     data.update(dict)
-#     with open(filePath, "w", encoding='utf-8') as f:
-#         json.dump(data, f)
-#     # 记录本次改变文件
-#     changedFiles[jsonFile] = {
-#         "fileName":
-#         jsonFile,
-#         "createTime":
-#         datetime.now(
-#             pytz.timezone("Asia/Shanghai")).strftime("%Y-%m-%d %H:%M:%S")
-#     }
-# updateDictFile end
-
-
-# 更新 Dict 类型数据文件
 def updateDictTxtFile(file, dict):
     txtFile = file + ".txt"
     filePath = outDir + txtFile
@@ -87,7 +61,7 @@ def updateDictTxtFile(file, dict):
         txtFile,
         "createTime":
         datetime.now(
-            pytz.timezone("Asia/Shanghai")).strftime("%Y-%m-%d %H:%M:%S")
+            pytz.timezone("Asia/Shanghai")).strftime("%Y-%m-%d %H:%M:%S %Z%z")
     }
 # updateDictTxtFile end
 
@@ -127,31 +101,6 @@ def updateIndexFile():
     data.update(changedFiles)
     with open(indexJsonFile, "w", encoding='utf-8') as f:
         json.dump(data, f)
-    #
-    items = list(data.values())
-    items.sort(key=lambda x: x['fileName'])
-    links = "  <ul>\n"
-    for item in items:
-        t = item["createTime"]
-        file = item["fileName"]
-        links += '    <li><a href="%s">%s (%s)</a></li>\n' % (file, file, t)
-    links += "  </ul>"
-    lines = '''
-<html>
-<head>
-<meta charset="utf-8">
-<meta http-equiv="X-UA-Compatible" content="IE=edge">
-<meta name="viewport" content="width=device-width,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
-</head>
-<body>
-%s
-</body>
-</html>
-''' % links
-    #
-    with open(outDir + "index.html", "w", encoding='utf-8') as f:
-        f.write(lines)
-
 # updateIndexFile end
 
 
@@ -173,8 +122,9 @@ makeDirs(outDir)
 provinces.update(getProvinces())
 
 for province in provinces.keys():
-    updateProvinceData(province)  # 测试
+    updateProvinceData(province)
 
 updateIndexFile()
+fileIndex.create(outDir)
 
 # main end
