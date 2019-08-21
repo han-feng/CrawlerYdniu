@@ -81,6 +81,14 @@ def updateProvinceData(province):
 # updateProvinceData end
 
 
+def titleGetter(filename):
+    filename = os.path.splitext(filename)[0]
+    province = filename[:-6]
+    month = filename[-6:]
+    title = provinces[province] + " " + month
+    return title
+
+
 # main
 makeDirs(outDir)
 
@@ -89,6 +97,6 @@ provinces.update(getProvinces())
 for province in provinces.keys():
     updateProvinceData(province)
 
-fileIndex.create(outDir)
+fileIndex.create(outDir, titleGetter=titleGetter)
 
 # main end

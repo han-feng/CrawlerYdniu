@@ -8,18 +8,25 @@ from datetime import datetime
 import pytz
 
 
+# 默认的TitleGetter实现
+def _defaultTitleGetter(filename):
+    return filename
+# _defaultTitleGetter end
+
+
 # 创建索引
-def create(baseDir):
+def create(baseDir, *, titleGetter=_defaultTitleGetter):
     filenames = _getTxtFiles(baseDir)
     filenames.sort()
-    links = "  <ul>\n"
+    links = "  <table>\n"
     for filename in filenames:
+        title = titleGetter(filename)
         t = os.stat(os.path.join(baseDir, filename)).st_mtime
         t = datetime.fromtimestamp(t, pytz.timezone(
             "Asia/Shanghai")).strftime("%Y-%m-%d %H:%M:%S")
-        links += '    <li><a href="%s">%s</a>(%s)</li>\n' % (
-            filename, filename, t)
-    links += "  </ul>"
+        links += '    <tr><td><a href="%s">%s</a></td><td>%s</td></tr>\n' % (
+            filename, title, t)
+    links += "  </table>"
     lines = '''
 <html>
 <head>
