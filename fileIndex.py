@@ -19,7 +19,7 @@ def _defaultTitleGetter(filename):
 def create(baseDir, *, titleGetter=_defaultTitleGetter):
     filenames = _getTxtFiles(baseDir)
     filenames.sort()
-    links = "  <table>\n  <tr><th>数据名称</th><th>10,<s>11</s></th><th><s>10</s>,11</th><th>10,11</th><th><s>10</s>,<s>11</s></th><th>更新时间</th></tr>"
+    links = "  <table>\n  <tr><th>数据名称</th><th>(10,<s>11</s>) or (<s>10</s>,11)</th><th>(10,11) or (<s>10</s>,<s>11</s>)</th><th>更新时间</th></tr>\n"
     for filename in filenames:
         # 获取标题
         title = titleGetter(filename)
@@ -28,10 +28,10 @@ def create(baseDir, *, titleGetter=_defaultTitleGetter):
         t = datetime.fromtimestamp(t, pytz.timezone(
             "Asia/Shanghai")).strftime("%Y-%m-%d %H:%M:%S")
         # 统计数据
-        (a, b, c, d) = _count10And11(os.path.join(baseDir, filename))
+        counter = _count10And11(os.path.join(baseDir, filename))
         # 输出
-        links += '    <tr><td><a href="%s">%s</a></td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>\n' % (
-            filename, title, a, b, c, d, t)
+        links += '    <tr><td><a href="%s">%s</a></td><td>%s</td><td>%s</td><td>%s</td></tr>\n' % (
+            filename, title, counter[0], counter[1], t)
     links += "  </table>"
     lines = '''
 <html>
@@ -81,8 +81,8 @@ def _getTxtFiles(baseDir):
 
 # 10&11统计
 def _count10And11(filename):
-    (a, b, c, d) = (0, 0, 0, 0)
     dict = txtfile.loadDict(filename)
+    counter = _10And11Counter()
     for datas in dict.values():
         e10 = False
         e11 = False
@@ -92,12 +92,49 @@ def _count10And11(filename):
             elif data == "11":
                 e11 = True
         if e10 == True and e11 == False:
-            a += 1
+            symbol = "A"
         elif e10 == False and e11 == True:
-            b += 1
-        elif e10 == True and e11 == True:
-            c += 1
+            symbol = "A"
         else:
-            d += 1
-    return (a, b, c, d)
+            symbol = "B"
+        counter.add(symbol)
+    counter.end()
+    return counter._counters
 # _count10And11 end
+
+
+class _10And11Counter:
+    _symbols = ["A", "B"]
+
+    def __init__(self):
+        self._counters = [[0, 0, 0], [0, 0, 0]]
+        self._curSymbolIndex = 0
+        self._curCounter = 0
+
+    def _switch(self):
+        if self._curCounter > 0:
+            counters = self._counters[self._curSymbolIndex]
+            # 填充计数器位置
+            if self._curCounter > 3:
+                while len(counters) < self._curCounter:
+                    counters.append(0)
+            counters[self._curCounter-1] += 1
+
+        self._curCounter = 1
+        if self._curSymbolIndex == 0:
+            self._curSymbolIndex = 1
+        else:
+            self._curSymbolIndex = 0
+
+    def add(self, symbol):
+        if not symbol in self._symbols:
+            print("无效的符号‘%s’" % symbol)
+            return
+        if self._symbols[self._curSymbolIndex] == symbol:
+            self._curCounter += 1
+        else:
+            self._switch()
+
+    def end(self):
+        self._switch()
+        self._curCounter = 0
