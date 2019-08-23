@@ -21,7 +21,7 @@ def create(baseDir, provinces):
         files = province_file.setdefault(province, [])
         files.append(filename)
 
-    table1 = "  <table>\n  <tr><th>省份</th><th>(10,<s>11</s>) or (<s>10</s>,11)</th><th>(10,11) or (<s>10</s>,<s>11</s>)</th><th>期数</th><th>起始期次</th><th>结束期次</th></tr>\n"
+    table1 = "  <table>\n  <tr><th>省份</th><th>A: (10,<s>11</s>) or (<s>10</s>,11)</th><th>B: (10,11) or (<s>10</s>,<s>11</s>)</th><th>期数</th><th>起始期次</th><th>结束期次</th><th>结束状态</th></tr>\n"
     for province in province_file.keys():
         files = province_file[province]
         province_name = provinces[province]
@@ -29,12 +29,13 @@ def create(baseDir, provinces):
         newfiles = []
         for file in files:
             newfiles.append(os.path.join(baseDir, file))
-        (counter, keylen, startkey, endkey, error) = _count10And11(newfiles)
+        (counter, keylen, startkey, endkey,
+         laststate, error) = _count10And11(newfiles)
         if error != "":
             error = "<ul style='color:red'>" + error + "</ul>"
         # 输出
-        table1 += '    <tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s%s</td></tr>\n' % (
-            province_name, counter[0], counter[1], keylen, startkey, endkey, error)
+        table1 += '    <tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s%s</td><td>%s</td></tr>\n' % (
+            province_name, counter[0], counter[1], keylen, startkey, endkey, error, laststate)
     table1 += "  </table>"
 
     table2 = "  <table>\n  <tr><th>数据名称</th><th>更新时间</th></tr>\n"
@@ -123,11 +124,11 @@ def _count10And11(files):
         else:
             symbol = "B"
         counter.add(symbol)
-    counter.end()
+    laststate = counter.end()
     keys = list(dict.keys())
     # 数据连贯性检查
     error = keyscheck(keys)
-    return (counter._counters, len(keys), keys[0], keys[-1], error)
+    return (counter._counters, len(keys), keys[0], keys[-1], laststate, error)
 # _count10And11 end
 
 
@@ -189,5 +190,7 @@ class _10And11Counter:
             self._switch()
 
     def end(self):
+        laststate = str(self._curCounter) + self._symbols[self._curSymbolIndex]
         self._switch()
         self._curCounter = 0
+        return laststate
