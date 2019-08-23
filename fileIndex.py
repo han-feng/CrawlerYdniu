@@ -9,30 +9,47 @@ import txtfile
 import pytz
 
 
-# 默认的TitleGetter实现
-def _defaultTitleGetter(filename):
-    return filename
-# _defaultTitleGetter end
-
-
 # 创建索引
-def create(baseDir, *, titleGetter=_defaultTitleGetter):
+def create(baseDir, provinces):
     filenames = _getTxtFiles(baseDir)
     filenames.sort()
-    links = "  <table>\n  <tr><th>数据名称</th><th>(10,<s>11</s>) or (<s>10</s>,11)</th><th>(10,11) or (<s>10</s>,<s>11</s>)</th><th>更新时间</th></tr>\n"
+
+    # 形成省份与文件关系dict
+    province_file = {}
+    for filename in filenames:
+        province = os.path.splitext(filename)[0][:-6]
+        files = province_file.setdefault(province, [])
+        files.append(filename)
+
+    table1 = "  <table>\n  <tr><th>省份</th><th>(10,<s>11</s>) or (<s>10</s>,11)</th><th>(10,11) or (<s>10</s>,<s>11</s>)</th><th>期数</th><th>起始期次</th><th>结束期次</th></tr>\n"
+    for province in province_file.keys():
+        files = province_file[province]
+        province_name = provinces[province]
+        # 统计数据
+        newfiles = []
+        for file in files:
+            newfiles.append(os.path.join(baseDir, file))
+        (counter, keylen, startkey, endkey) = _count10And11(newfiles)
+        # 输出
+        table1 += '    <tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>\n' % (
+            province_name, counter[0], counter[1], keylen, startkey, endkey)
+    table1 += "  </table>"
+
+    table2 = "  <table>\n  <tr><th>数据名称</th><th>更新时间</th></tr>\n"
     for filename in filenames:
         # 获取标题
-        title = titleGetter(filename)
+        name = os.path.splitext(filename)[0]
+        province = name[:-6]
+        month = name[-6:]
+        title = provinces[province] + " " + month
         # 获取更新时间
         t = os.stat(os.path.join(baseDir, filename)).st_mtime
         t = datetime.fromtimestamp(t, pytz.timezone(
             "Asia/Shanghai")).strftime("%Y-%m-%d %H:%M:%S")
-        # 统计数据
-        counter = _count10And11(os.path.join(baseDir, filename))
         # 输出
-        links += '    <tr><td><a href="%s">%s</a></td><td>%s</td><td>%s</td><td>%s</td></tr>\n' % (
-            filename, title, counter[0], counter[1], t)
-    links += "  </table>"
+        table2 += '    <tr><td><a href="%s">%s</a></td><td>%s</td></tr>\n' % (
+            filename, title, t)
+    table2 += "  </table>"
     lines = '''
 <html>
 <head>
@@ -57,10 +74,13 @@ s {
 </style>
 </head>
 <body>
+<h3>统计数据</h3>
+%s
+<h3>原始数据</h3>
 %s
 </body>
 </html>
-''' % links
+''' % (table1, table2)
     #
     with open(os.path.join(baseDir, "index.html"), "w", encoding='utf-8') as f:
         f.write(lines)
@@ -80,8 +100,12 @@ def _getTxtFiles(baseDir):
 
 
 # 10&11统计
-def _count10And11(filename):
-    dict = txtfile.loadDict(filename)
+def _count10And11(files):
+    dict = {}
+    for file in files:
+        dict.update(txtfile.loadDict(file))
+
+    keys = list(dict.keys())
     counter = _10And11Counter()
     for datas in dict.values():
         e10 = False
@@ -99,7 +123,7 @@ def _count10And11(filename):
             symbol = "B"
         counter.add(symbol)
     counter.end()
-    return counter._counters
+    return (counter._counters, len(keys), keys[0], keys[-1])
 # _count10And11 end
 
 
