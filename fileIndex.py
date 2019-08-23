@@ -29,10 +29,12 @@ def create(baseDir, provinces):
         newfiles = []
         for file in files:
             newfiles.append(os.path.join(baseDir, file))
-        (counter, keylen, startkey, endkey) = _count10And11(newfiles)
+        (counter, keylen, startkey, endkey, error) = _count10And11(newfiles)
+        if error != "":
+            error = "<ul style='color:red'>" + error + "</ul>"
         # 输出
-        table1 += '    <tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>\n' % (
-            province_name, counter[0], counter[1], keylen, startkey, endkey)
+        table1 += '    <tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s%s</td></tr>\n' % (
+            province_name, counter[0], counter[1], keylen, startkey, endkey, error)
     table1 += "  </table>"
 
     table2 = "  <table>\n  <tr><th>数据名称</th><th>更新时间</th></tr>\n"
@@ -105,7 +107,6 @@ def _count10And11(files):
     for file in files:
         dict.update(txtfile.loadDict(file))
 
-    keys = list(dict.keys())
     counter = _10And11Counter()
     for datas in dict.values():
         e10 = False
@@ -123,8 +124,36 @@ def _count10And11(files):
             symbol = "B"
         counter.add(symbol)
     counter.end()
-    return (counter._counters, len(keys), keys[0], keys[-1])
+    keys = list(dict.keys())
+    # 数据连贯性检查
+    error = keyscheck(keys)
+    return (counter._counters, len(keys), keys[0], keys[-1], error)
 # _count10And11 end
+
+
+# 数据连贯性检查
+def keyscheck(keys):
+    oldkey = ""
+    error = ""
+    for key in keys:
+        if oldkey == "":
+            oldkey = key
+            continue
+        # 日期连贯
+        if key[-2:] == "01":
+            olddate = datetime.strptime(oldkey[:8], "%Y%m%d")
+            date = datetime.strptime(key[:8], "%Y%m%d")
+            if (date - olddate).days != 1:
+                error += "<li>期数不连贯 %s, %s</li>" % (oldkey, key)
+        else:
+            # 末尾数字连贯
+            oldnum = int(oldkey[8:])
+            num = int(key[8:])
+            if oldnum + 1 != num:
+                error += "<li>期数不连贯 %s, %s</li>" % (oldkey, key)
+        oldkey = key
+    return error
+# keyscheck end
 
 
 class _10And11Counter:
