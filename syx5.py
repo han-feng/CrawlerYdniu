@@ -3,16 +3,10 @@
 # YDNIU 彩票数据抓取工具
 
 import os
-import sys
-import json
-import zipfile
-from datetime import datetime
-
 import txtfile
 import fileIndex
 
 # requirements: pytz, requests, bs4, lxml
-import pytz
 import requests
 from bs4 import BeautifulSoup
 
@@ -66,7 +60,6 @@ def getProvinceData(province):
         monthDatas[key] = values
     #
     return datas
-
 # getProvinceData end
 
 
@@ -86,8 +79,8 @@ makeDirs(outDir)
 
 provinces.update(getProvinces())
 
-for province in provinces.keys():
-    updateProvinceData(province)
+for p in provinces.keys():
+    updateProvinceData(p)
 
 fileIndex.create(outDir, provinces)
 
