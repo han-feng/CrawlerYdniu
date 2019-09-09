@@ -21,7 +21,7 @@ def loadDict(filePath):
 def _dictToLines(dict):
     lines = []
     for key in dict.keys():
-        value = [key]+dict[key]
+        value = [key] + dict[key]
         line = ",".join(value)+"\n"
         lines.append(line)
     return lines

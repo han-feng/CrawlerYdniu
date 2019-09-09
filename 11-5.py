@@ -3,6 +3,8 @@
 # 11选5 彩票数据抓取工具
 
 import os
+import time
+import datetime
 import txtfile
 import fileIndex
 
@@ -12,17 +14,23 @@ from bs4 import BeautifulSoup
 
 # const
 baseUrl = "https://www.55128.cn/zs/"
-outDir = "target/11-5/"
+outDir = "target/11-5"
+sleepTime = 0.5
+lastUpdated = {}
 
 provinces = {"sd": "山东", "gd": "广东", "js": "江苏",
              "jx": "江西", "sh": "上海", "ah": "安徽"}
 
 provinceUrls = {"sd": "80_467.htm",
-                "gd": "80_467.htm",
+                "gd": "72_396.htm",
                 "jx": "77_440.htm",
                 "js": "76_431.htm",
                 "sh": "81_476.htm",
                 "ah": "70_378.htm"}
+
+dateParamName = "searchTime"
+dateParamValueFormat = "%Y-%m-%d"
+defaultStartDate = "20180101"
 
 
 # 批量建立文件夹
@@ -33,10 +41,14 @@ def makeDirs(dirPath):
 # makeDirs end
 
 
-# 获取指定省的数据
-def getProvinceData(province):
+# 获取指定省、指定日期的数据
+def getProvinceData(province, date):
     provinceUrl = provinceUrls[province]
     url = "".join([baseUrl, provinceUrl])
+    if date != None:
+        url = "".join([url, "?", dateParamName, "=",
+                       date.strftime(dateParamValueFormat)])
+    print(url)
     response = requests.get(url)
     soup = BeautifulSoup(response.text, 'lxml')
     rows = soup.select("#chartData>tr")
@@ -45,34 +57,67 @@ def getProvinceData(province):
         cols = item.select("td:nth-child(-n+6)")
         if len(cols) < 6:
             continue
-        key = "20" + cols[0].get_text().strip()
+        key = cols[0].get_text().strip()
         values = []
         for col in cols[1:]:
             values.append(col.get_text().strip())
-        monthDatas = datas.setdefault(key[:6], {})
-        monthDatas[key] = values
+        datas[key] = values
     #
     return datas
 # getProvinceData end
 
 
-# 更新指定省的数据
-def updateProvinceData(province):
-    datas = getProvinceData(province)
+def writeTxtFile(province, datas):
     # 按月份分文件处理
+    i = 0  # debug
     for month in datas.keys():
-        fileName = province + month + ".txt"
+        fileName = "".join([province, "20", month, ".txt"])
         data = datas[month]
+        print(">>>>>>", fileName)
         txtfile.appendDict(os.path.join(outDir, fileName), data)
+        if i > 0:  # debug
+            print("Warning!")  # debug
+        i += 1  # debug
+
+
+# 更新指定省份、指定起始日期的数据
+def updateProvinceData(province):
+    beginDate = datetime.datetime.strptime(
+        lastUpdated.get(province, [defaultStartDate])[0], "%Y%m%d").date()
+    endDate = datetime.date.today()
+    datas = {}
+    for i in range((endDate - beginDate).days+1):
+        day = beginDate + datetime.timedelta(days=i)
+        key = day.strftime("%y%m%d")
+        if i > 0:
+            if day.day == 1:  # 每月开始，保存上月数据
+                writeTxtFile(province, datas)
+                txtfile.saveDict(lastlogfile, lastUpdated)
+                datas = {}
+        if sleepTime > 0:
+            time.sleep(sleepTime)
+        dayDatas = getProvinceData(province, day)
+        if len(dayDatas) > 0:
+            lastUpdated[province] = [day.strftime("%Y%m%d")]
+        monthDatas = datas.setdefault(key[:4], {})
+        monthDatas.update(dayDatas)
+    if len(datas) > 0:
+        writeTxtFile(province, datas)
+        txtfile.saveDict(lastlogfile, lastUpdated)
 # updateProvinceData end
 
 
 # main
 makeDirs(outDir)
 
+lastlogfile = os.path.join(outDir, "lastupdated.dat")
+if os.path.exists(lastlogfile):
+    lastUpdated = txtfile.loadDict(lastlogfile)
+
 for p in provinces.keys():
     updateProvinceData(p)
 
+txtfile.saveDict(lastlogfile, lastUpdated)
 fileIndex.create(outDir, provinces)
 
 # main end
