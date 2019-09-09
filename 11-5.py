@@ -15,8 +15,11 @@ from bs4 import BeautifulSoup
 # const
 baseUrl = "https://www.55128.cn/zs/"
 outDir = "target/11-5"
-sleepTime = 1
+sleepTime = 0.75
+timeOut = 60 * 45
 lastUpdated = {}
+
+startTime = datetime.datetime.now()
 
 provinces = {"sd": "山东", "gd": "广东", "js": "江苏",
              "jx": "江西", "sh": "上海", "ah": "安徽"}
@@ -87,6 +90,10 @@ def updateProvinceData(province):
     endDate = datetime.date.today()
     datas = {}
     for i in range((endDate - beginDate).days+1):
+        t = datetime.datetime.now() - startTime
+        if t.seconds > timeOut:  # 超时退出
+            print("超时退出", t)
+            break
         day = beginDate + datetime.timedelta(days=i)
         key = day.strftime("%y%m%d")
         if i > 0:
@@ -115,6 +122,10 @@ if os.path.exists(lastlogfile):
     lastUpdated = txtfile.loadDict(lastlogfile)
 
 for p in provinces.keys():
+    t = datetime.datetime.now() - startTime
+    if t.seconds > timeOut:  # 超时退出
+        print("超时退出", t)
+        break
     updateProvinceData(p)
 
 txtfile.saveDict(lastlogfile, lastUpdated)
