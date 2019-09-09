@@ -16,7 +16,7 @@ from bs4 import BeautifulSoup
 baseUrl = "https://www.55128.cn/zs/"
 outDir = "target/11-5"
 sleepTime = 0.75
-timeOut = 60 * 45
+timeOut = 60 * 5
 lastUpdated = {}
 
 startTime = datetime.datetime.now()
