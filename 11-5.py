@@ -15,8 +15,8 @@ from bs4 import BeautifulSoup
 # const
 baseUrl = "https://www.55128.cn/zs/"
 outDir = "target/11-5"
-sleepTime = 0.75
-timeOut = 60 * 10
+sleepTime = 0
+timeOut = 60 * 5
 lastUpdated = {}
 
 startTime = datetime.datetime.now()
@@ -51,7 +51,7 @@ def getProvinceData(province, date):
     if date != None:
         url = "".join([url, "?", dateParamName, "=",
                        date.strftime(dateParamValueFormat)])
-    # print(url)
+    print(url)
     response = requests.get(url)
     soup = BeautifulSoup(response.text, 'lxml')
     rows = soup.select("#chartData>tr")
@@ -101,8 +101,8 @@ def updateProvinceData(province):
                 writeTxtFile(province, datas)
                 txtfile.saveDict(lastlogfile, lastUpdated)
                 datas = {}
-        if sleepTime > 0:
-            time.sleep(sleepTime)
+            if sleepTime > 0:
+                time.sleep(sleepTime)
         dayDatas = getProvinceData(province, day)
         if len(dayDatas) > 0:
             lastUpdated[province] = [day.strftime("%Y%m%d")]
