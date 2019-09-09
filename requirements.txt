@@ -2,3 +2,4 @@ pytz
 requests
 bs4
 lxml
+Jinja2
