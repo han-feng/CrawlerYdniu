@@ -8,8 +8,8 @@ cache:
     - target
 
 script:
-  - python -u 11-5.py
-  - python -u syx5.py
+  - travis_wait 60 python -u 11-5.py
+  - travis_wait 60 python -u syx5.py
 
 deploy:
   provider: pages
