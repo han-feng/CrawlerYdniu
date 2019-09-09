@@ -15,7 +15,7 @@ from bs4 import BeautifulSoup
 # const
 baseUrl = "https://www.55128.cn/zs/"
 outDir = "target/11-5"
-sleepTime = 0.5
+sleepTime = 1
 lastUpdated = {}
 
 provinces = {"sd": "山东", "gd": "广东", "js": "江苏",
