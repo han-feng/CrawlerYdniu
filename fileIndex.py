@@ -132,24 +132,36 @@ def _count10And11(files):
 # _count10And11 end
 
 
+# 日期格式转换
+def strpdate(strdate):
+    if len(strdate) >= 8:
+        date = datetime.strptime(strdate[:8], "%Y%m%d")
+    else:
+        date = datetime.strptime(strdate[:6], "%y%m%d")
+    return date
+
+
 # 数据连贯性检查
 def keyscheck(keys):
     oldkey = ""
     error = ""
     for key in keys:
+        key = key.strip()
+        if key == "":
+            continue
         if oldkey == "":
             oldkey = key
             continue
         # 日期连贯
         if key[-2:] == "01":
-            olddate = datetime.strptime(oldkey[:8], "%Y%m%d")
-            date = datetime.strptime(key[:8], "%Y%m%d")
+            olddate = strpdate(oldkey[:-2])
+            date = strpdate(key[:-2])
             if (date - olddate).days != 1:
                 error += "<li>期数不连贯 %s, %s</li>" % (oldkey, key)
         else:
             # 末尾数字连贯
-            oldnum = int(oldkey[8:])
-            num = int(key[8:])
+            oldnum = int(oldkey[-2:])
+            num = int(key[-2:])
             if oldnum + 1 != num:
                 error += "<li>期数不连贯 %s, %s</li>" % (oldkey, key)
         oldkey = key
