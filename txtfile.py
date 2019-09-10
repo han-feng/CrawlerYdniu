@@ -20,7 +20,7 @@ def loadDict(filePath):
 # 转换 Dictionary 为文本内容
 def _dictToLines(dict):
     lines = []
-    for key in dict.keys():
+    for key in sorted(dict):
         value = [key] + dict[key]
         line = ",".join(value)+"\n"
         lines.append(line)
@@ -33,7 +33,6 @@ def saveDict(filePath, dict):
     lines = _dictToLines(dict)
     with open(filePath, "w", encoding='utf-8') as f:
         f.writelines(lines)
-    pass
 # saveDict end
 
 

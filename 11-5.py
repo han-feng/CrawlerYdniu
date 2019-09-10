@@ -16,7 +16,7 @@ from bs4 import BeautifulSoup
 # const
 baseUrl = "https://www.55128.cn/zs/"
 outDir = "target/11-5"
-sleepTime = 0.5
+sleepTime = 0
 timeOut = 60 * 40
 lastUpdated = {}
 
@@ -127,6 +127,16 @@ def updateProvinceData(province):
 # main
 makeDirs(outDir)
 
+# 临时代码：对已有数据进行排序
+filenames = fileIndex._getTxtFiles(outDir)
+filenames.sort()
+for filename in filenames:
+    file = os.path.join(outDir, filename)
+    print(file)
+    dict = txtfile.loadDict(file)
+    txtfile.saveDict(file, dict)
+# 临时代码结束
+
 lastlogfile = os.path.join(outDir, "lastupdated.dat")
 if os.path.exists(lastlogfile):
     lastUpdated = txtfile.loadDict(lastlogfile)
@@ -139,6 +149,7 @@ for p in provinces.keys():
     updateProvinceData(p)
 
 txtfile.saveDict(lastlogfile, lastUpdated)
+
 fileIndex.create(outDir, provinces)
 
 # main end
