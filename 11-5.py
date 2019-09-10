@@ -10,6 +10,7 @@ import fileIndex
 
 # requirements: pytz, requests, bs4, lxml
 import requests
+from requests.adapters import HTTPAdapter
 from bs4 import BeautifulSoup
 
 # const
@@ -45,14 +46,14 @@ def makeDirs(dirPath):
 
 
 # 获取指定省、指定日期的数据
-def getProvinceData(province, date):
+def getProvinceData(province, date, session):
     provinceUrl = provinceUrls[province]
     url = "".join([baseUrl, provinceUrl])
     if date != None:
         url = "".join([url, "?", dateParamName, "=",
                        date.strftime(dateParamValueFormat)])
     print(url)
-    response = requests.get(url)
+    response = session.get(url, timeout=20)
     soup = BeautifulSoup(response.text, 'lxml')
     rows = soup.select("#chartData>tr")
     datas = {}
@@ -89,6 +90,9 @@ def updateProvinceData(province):
         lastUpdated.get(province, [defaultStartDate])[0], "%Y%m%d").date()
     endDate = datetime.date.today()
     datas = {}
+    session = requests.Session()
+    session.mount('http://', HTTPAdapter(max_retries=3))
+    session.mount('https://', HTTPAdapter(max_retries=3))
     for i in range((endDate - beginDate).days+1):
         t = datetime.datetime.now() - startTime
         if t.seconds > timeOut:  # 超时退出
@@ -103,7 +107,7 @@ def updateProvinceData(province):
                 datas = {}
             if sleepTime > 0:
                 time.sleep(sleepTime)
-        dayDatas = getProvinceData(province, day)
+        dayDatas = getProvinceData(province, day, session)
         if len(dayDatas) > 0:
             lastUpdated[province] = [day.strftime("%Y%m%d")]
         monthDatas = datas.setdefault(key[:4], {})
@@ -111,6 +115,7 @@ def updateProvinceData(province):
     if len(datas) > 0:
         writeTxtFile(province, datas)
         txtfile.saveDict(lastlogfile, lastUpdated)
+    session.close()
 # updateProvinceData end
 
 
