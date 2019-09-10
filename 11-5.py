@@ -17,7 +17,7 @@ from bs4 import BeautifulSoup
 baseUrl = "https://www.55128.cn/zs/"
 outDir = "target/11-5"
 sleepTime = 0.5
-timeOut = 60 * 20
+timeOut = 60 * 40
 lastUpdated = {}
 
 startTime = datetime.datetime.now()
@@ -93,29 +93,34 @@ def updateProvinceData(province):
     session = requests.Session()
     session.mount('http://', HTTPAdapter(max_retries=3))
     session.mount('https://', HTTPAdapter(max_retries=3))
-    for i in range((endDate - beginDate).days+1):
-        t = datetime.datetime.now() - startTime
-        if t.seconds > timeOut:  # 超时退出
-            print("超时退出", t)
-            break
-        day = beginDate + datetime.timedelta(days=i)
-        key = day.strftime("%y%m%d")
-        if i > 0:
-            if day.day == 1:  # 每月开始，保存上月数据
-                writeTxtFile(province, datas)
-                txtfile.saveDict(lastlogfile, lastUpdated)
-                datas = {}
-            if sleepTime > 0:
-                time.sleep(sleepTime)
-        dayDatas = getProvinceData(province, day, session)
-        if len(dayDatas) > 0:
-            lastUpdated[province] = [day.strftime("%Y%m%d")]
-        monthDatas = datas.setdefault(key[:4], {})
-        monthDatas.update(dayDatas)
-    if len(datas) > 0:
-        writeTxtFile(province, datas)
-        txtfile.saveDict(lastlogfile, lastUpdated)
-    session.close()
+
+    try:
+        for i in range((endDate - beginDate).days+1):
+            t = datetime.datetime.now() - startTime
+            if t.seconds > timeOut:  # 超时退出
+                print("超时退出", t)
+                break
+            day = beginDate + datetime.timedelta(days=i)
+            key = day.strftime("%y%m%d")
+            if i > 0:
+                if day.day == 1:  # 每月开始，保存上月数据
+                    writeTxtFile(province, datas)
+                    txtfile.saveDict(lastlogfile, lastUpdated)
+                    datas = {}
+                if sleepTime > 0:
+                    time.sleep(sleepTime)
+            dayDatas = getProvinceData(province, day, session)
+            if len(dayDatas) > 0:
+                lastUpdated[province] = [day.strftime("%Y%m%d")]
+            monthDatas = datas.setdefault(key[:4], {})
+            monthDatas.update(dayDatas)
+    except requests.exceptions.RequestException as e:
+        print("Error: ", e)
+    finally:
+        session.close()
+        if len(datas) > 0:
+            writeTxtFile(province, datas)
+            txtfile.saveDict(lastlogfile, lastUpdated)
 # updateProvinceData end
 
 
