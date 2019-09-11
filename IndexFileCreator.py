@@ -25,10 +25,16 @@ def create(root, context={}, *, encoding="utf-8"):
             if filename != "index.html":
                 files.append(filename)
         # TODO 补充数据：相对于 root 的文件全路径名称，文件绝对路径名称，文件修改时间......
+        # 排序：文件名、大小、修改时间
         text = defaultTemplate.render(
             {"context": context, "files": files, "subdirs": subdirs})
         with open(os.path.join(dirpath, "index.html"), "w", encoding=encoding) as f:
             f.write(text)
+
+
+def listFiles(root, filterString, sort, subdir):
+
+    pass
 
 
 create("target")

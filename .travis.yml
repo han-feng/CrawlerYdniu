@@ -10,6 +10,7 @@ cache:
 script:
   - python -u 11-5.py
   - python -u syx5.py
+  - python -u datacheck.py
 
 deploy:
   provider: pages
