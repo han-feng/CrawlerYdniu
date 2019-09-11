@@ -12,7 +12,7 @@ import pytz
 # 创建索引
 def create(baseDir, provinces):
     filenames = _getTxtFiles(baseDir)
-    filenames.sort()
+    filenames.sort(reverse=True)
 
     # 形成省份与文件关系dict
     province_file = {}
