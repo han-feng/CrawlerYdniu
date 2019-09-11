@@ -16,6 +16,13 @@ def formatValue(x):
         return x
 
 
+def unformatValue(x):
+    if operator.eq(x[0], "0"):
+        return x[1:]
+    else:
+        return x
+
+
 def check():
     # 遍历数据目录1，核对数据目录2中的同名文件
     filenames = fileIndex._getTxtFiles(dataDir[0])
@@ -24,15 +31,23 @@ def check():
         file2 = os.path.join(dataDir[1], filename)
         if os.path.exists(file2):
             data2 = txtfile.loadDict(file2)
+            changed2 = False
             # 只需核对 data1 中的数据在 data2 中是否存在即可
             for (key, value) in data1.items():
                 key = key[2:]
                 if not data2.__contains__(key):
                     print(file2, "缺少数据", key)
+                    # 自动补充上
+                    newValue = list(map(unformatValue, value))
+                    data2[key] = newValue
+                    changed2 = True
+                    print("自动补充数据", key, newValue)
                 else:
                     value2 = list(map(formatValue, data2[key]))
                     if operator.ne(value, value2):
                         print(filename, value, value2, key)
+            if changed2:
+                txtfile.saveDict(file2, data2)
 
 
 check()
