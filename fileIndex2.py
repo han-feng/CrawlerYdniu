@@ -8,8 +8,8 @@ import txtfile
 # requirements: pytz
 import pytz
 
-startIndex = 14
-endIndex = 21
+startIndex = 1
+endIndex = 30
 dataIndexs = range(startIndex, endIndex+1)
 
 # 创建索引
@@ -46,7 +46,7 @@ def create(baseDir, provinces):
             c = counter[i - startIndex]
             s = "(%s/%s)" % (c[0], c[1])
             if c[1] > 0:
-                s = "%s %s" % (c[0]*100//c[1], s)
+                s = "%.2f%% %s" % (c[0]*100/c[1], s)
             table1 += "<td>%s</td>" % s
         table1 += '<td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>\n' % (
             keylen, startkey, endkey, error)
@@ -173,10 +173,55 @@ def keyscheck(keys):
 class _R8Counter:
 
     def __init__(self):
+        self._composeIndex = {}
         self._counters = []
         for i in dataIndexs:
             self._counters.append([0, 0])
 
     def add(self, values):
         # print("[datas] %s" % values)
-        pass
+        values.sort()
+        # 列举组合
+        l = len(values)
+        for i in range(0, l):
+            for j in range(i+1, l):
+                for k in range(j + 1, l):
+                    key = "%s-%s-%s" % (values[i], values[j], values[k])
+                    keys = set([values[i], values[j], values[k]])
+                    # 创建 Compose 对象
+                    self._composeIndex.setdefault(
+                        key, self.Compose(keys, self))
+        # 遍历所有 compose
+        for compose in self._composeIndex.values():
+            compose.add(values)
+
+    # 统计计数器加一，isAll：全中或全不中
+    def _addCount(self, count, isAll):
+        if dataIndexs.__contains__(count):
+            c = self._counters[count - startIndex]
+            c[1] += 1
+            if isAll:
+                c[0] += 1
+
+    class Compose:
+
+        def __init__(self, keys, r8counter):
+            self._keys = keys.copy()
+            self._currCount = 1
+            self.parent = r8counter
+
+        def add(self, values):
+            c = self._keys.intersection(values)  # 计算交集
+            if len(c) == 0:
+                if self._currCount > 0:
+                    # 全不中的情况，计数终止，重置
+                    self.parent._addCount(self._currCount, True)
+                    self._currCount = 0
+            elif len(c) == 3:
+                # 全中的情况
+                self.parent._addCount(self._currCount, True)
+                self._currCount += 1
+            else:
+                # 部分中的情况
+                self.parent._addCount(self._currCount, False)
+                self._currCount += 1
