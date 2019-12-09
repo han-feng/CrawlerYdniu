@@ -8,13 +8,12 @@ import txtfile
 # requirements: pytz
 import pytz
 
-startIndex = 1
-endIndex = 30
+startIndex = 10
+endIndex = 25
 dataIndexs = range(startIndex, endIndex+1)
 
+
 # 创建索引
-
-
 def create(baseDir, provinces):
     filenames = _getTxtFiles(baseDir)
     filenames.sort()
@@ -26,10 +25,10 @@ def create(baseDir, provinces):
         files = province_file.setdefault(province, [])
         files.append(filename)
 
-    table1 = "  <table>\n  <tr><th>省份</th>"
+    table1 = "  <table>\n  <tr><th>省份</th><th></th><th>期次号</th>"
     for i in dataIndexs:
         table1 += "<th>%s</th>" % i
-    table1 += "<th>期数</th><th>起始期次</th><th>结束期次</th><th>异常</th></tr>\n"
+    table1 += "</tr>\n"
     for province in province_file.keys():
         files = province_file[province]
         province_name = provinces[province]
@@ -37,19 +36,22 @@ def create(baseDir, provinces):
         newfiles = []
         for file in files:
             newfiles.append(os.path.join(baseDir, file))
-        (counter, keylen, startkey, endkey, error) = _count(newfiles)
+        (counters, keylen, startkey, endkey, error) = _count(newfiles)
+        l = len(counters)
         if error != "":
             error = "<ul style='color:red'>" + error + "</ul>"
         # 输出
-        table1 += '    <tr><td>%s</td>' % province_name
-        for i in dataIndexs:
-            c = counter[i - startIndex]
-            s = "(%s/%s)" % (c[0], c[1])
-            if c[1] > 0:
-                s = "%.2f%% %s" % (c[0]*100/c[1], s)
-            table1 += "<td>%s</td>" % s
-        table1 += '<td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>\n' % (
-            keylen, startkey, endkey, error)
+        table1 += '    <tr><td rowspan="%d">%s</td>' % (l, province_name)
+        table1 += '<td rowspan="%d">共%s期<br>(%s ~ %s)<br>%s</td>' % (
+            l, keylen, startkey, endkey, error)
+        for i, counter in enumerate(counters):
+            if i > 0:
+                table1 += "<tr>"
+            table1 += "<td>%d~%d</td>" % (i*3+1, i*3+3)
+            for i in dataIndexs:
+                c = counter[i - startIndex]
+                table1 += "<td>%s</td>" % c.percent()
+            table1 += '</tr>\n'
     table1 += "  </table>"
 
     table2 = "  <table>\n  <tr><th>数据名称</th><th>更新时间</th></tr>\n"
@@ -123,8 +125,8 @@ def _count(files):
         dict.update(txtfile.loadDict(file))
 
     counter = _R8Counter()
-    for datas in dict.values():
-        counter.add(datas)
+    for key, value in dict.items():
+        counter.add(key, value)
     keys = list(dict.keys())
     # 数据连贯性检查
     error = keyscheck(keys)
@@ -175,10 +177,14 @@ class _R8Counter:
     def __init__(self):
         self._composeIndex = {}
         self._counters = []
-        for i in dataIndexs:
-            self._counters.append([0, 0])
 
-    def add(self, values):
+    def _createCounters(self):
+        counters = []
+        for i in dataIndexs:
+            counters.append(self.Counter())
+        return counters
+
+    def add(self, no, values):
         # print("[datas] %s" % values)
         values.sort()
         # 列举组合
@@ -193,15 +199,35 @@ class _R8Counter:
                         key, self.Compose(keys, self))
         # 遍历所有 compose
         for compose in self._composeIndex.values():
-            compose.add(values)
+            compose.add(no, values)
 
     # 统计计数器加一，isAll：全中或全不中
-    def _addCount(self, count, isAll):
-        if dataIndexs.__contains__(count):
-            c = self._counters[count - startIndex]
-            c[1] += 1
+    def _addCount(self, no, count, isAll):
+        if not dataIndexs.__contains__(count):
+            return
+        # 计算时段
+        i = (int(no[-2:]) - 1) // 3
+        while len(self._counters) <= i:
+            self._counters.append(self._createCounters())
+        # 获取 counters
+        counters = self._counters[i]
+        c = counters[count - startIndex]
+        c.add(isAll)
+
+    class Counter:
+        count = 0
+        total = 0
+
+        def add(self, isAll):
+            self.total += 1
             if isAll:
-                c[0] += 1
+                self.count += 1
+
+        def percent(self):
+            s = ""  # "(%s/%s)" % (self.count, self.total)
+            if self.total != 0:
+                s = "%.2f%% %s" % (self.count * 100 / self.total, s)
+            return s
 
     class Compose:
 
@@ -210,18 +236,18 @@ class _R8Counter:
             self._currCount = 1
             self.parent = r8counter
 
-        def add(self, values):
+        def add(self, no, values):
             c = self._keys.intersection(values)  # 计算交集
             if len(c) == 0:
                 if self._currCount > 0:
                     # 全不中的情况，计数终止，重置
-                    self.parent._addCount(self._currCount, True)
+                    self.parent._addCount(no, self._currCount, True)
                     self._currCount = 0
             elif len(c) == 3:
                 # 全中的情况
-                self.parent._addCount(self._currCount, True)
+                self.parent._addCount(no, self._currCount, True)
                 self._currCount += 1
             else:
                 # 部分中的情况
-                self.parent._addCount(self._currCount, False)
+                self.parent._addCount(no, self._currCount, False)
                 self._currCount += 1
