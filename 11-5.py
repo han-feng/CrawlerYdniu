@@ -6,7 +6,7 @@ import os
 import time
 import datetime
 import txtfile
-import fileIndex
+import fileIndex2
 
 # requirements: pytz, requests, bs4, lxml
 import requests
@@ -150,6 +150,6 @@ for p in provinces.keys():
 
 txtfile.saveDict(lastlogfile, lastUpdated)
 
-fileIndex.create(outDir, provinces)
+fileIndex2.create(outDir, provinces)
 
 # main end
