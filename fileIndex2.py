@@ -23,7 +23,8 @@ def create(baseDir, provinces):
     for filename in filenames:
         province = os.path.splitext(filename)[0][:-6]
         files = province_file.setdefault(province, [])
-        files.append(filename)
+        if filename >= "%s201903.txt" % province:
+            files.append(filename)
 
     table1 = "  <table>\n  <tr><th>省份</th><th></th><th>期次号</th>"
     for i in dataIndexs:
