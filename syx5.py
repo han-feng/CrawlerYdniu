@@ -3,12 +3,13 @@
 # YDNIU 彩票数据抓取工具
 
 import os
-import txtfile
-import fileIndex
 
-# requirements: pytz, requests, bs4, lxml
+# requirements: requests, bs4, lxml
 import requests
 from bs4 import BeautifulSoup
+
+import fileIndex
+import txtfile
 
 # const
 baseUrl = "https://chart.ydniu.com/trend/"

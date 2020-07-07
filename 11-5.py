@@ -2,16 +2,17 @@
 # python 3.7
 # 11选5 彩票数据抓取工具
 
+import datetime
 import os
 import time
-import datetime
-import txtfile
-import fileIndex2
 
-# requirements: pytz, requests, bs4, lxml
+# requirements: requests, bs4, lxml
 import requests
-from requests.adapters import HTTPAdapter
 from bs4 import BeautifulSoup
+from requests.adapters import HTTPAdapter
+
+import fileIndex2
+import txtfile
 
 # const
 baseUrl = "https://www.55128.cn/zs/"
