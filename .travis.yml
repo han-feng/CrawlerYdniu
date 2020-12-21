@@ -8,9 +8,10 @@ cache:
     - target
 
 script:
-  - python -u 11-5.py
-  - python -u syx5.py
-  - python -u datacheck.py
+  # - python -u 11-5.py
+  # - python -u syx5.py
+  # - python -u datacheck.py
+  - python -u qhcjcc.py
 
 deploy:
   provider: pages

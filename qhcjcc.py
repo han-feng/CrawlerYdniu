@@ -1,10 +1,18 @@
 #!/usr/bin/python
 # python 3.7
 # 期货成交持仓
-
 import json
+import os
 
 import requests
+
+outDir = "target/qhcjcc"
+
+
+def makeDirs(dirPath):
+    """批量建立文件夹"""
+    if not os.path.exists(dirPath):
+        os.makedirs(dirPath)
 
 
 def get_url_duo(date):
@@ -27,6 +35,10 @@ def get_datas(url):
     for data in datas:
         print(data["Code"], data["Name"], data["Ddl"],
               data["DdlZJ"], data["Kdl"], data["KdlZJ"])
+
+
+# main
+makeDirs(outDir)
 
 get_datas(get_url_duo("2020-12-16"))
 print()
