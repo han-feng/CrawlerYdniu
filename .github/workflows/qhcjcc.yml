@@ -13,25 +13,25 @@ jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     steps:
-    - name: Cache 🎁
-      uses: actions/cache@v2.1.3
-      with:
-        path: target/qhcjcc
-        key: qhcjcc-target
-    - name: Checkout 🍺
-      uses: actions/checkout@v2
-    - name: Set up Python 🐍
-      uses: actions/setup-python@v2
-      with:
-        python-version: 3.9
-    - name: Install dependencies 🔧
-      run: pip install -r requirements.txt
-    - name: Run qhcjcc 🏃
-      run: python qhcjcc.py
-    - name: Deploy 🚀
-      uses: JamesIves/github-pages-deploy-action@3.7.1
-      with:
-        GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
-        BRANCH: gh-pages # The branch the action should deploy to.
-        FOLDER: target # The folder the action should deploy.
-        CLEAN: false # Automatically remove deleted files from the deploy branch
+      - name: Checkout 🍺
+        uses: actions/checkout@v2
+      - name: Cache 🎁
+        uses: actions/cache@v2.1.3
+        with:
+          path: target/qhcjcc
+          key: qhcjcc-target
+      - name: Set up Python 🐍
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.9
+      - name: Install dependencies 🔧
+        run: pip install -r requirements.txt
+      - name: Run qhcjcc 🏃
+        run: python qhcjcc.py
+      - name: Deploy 🚀
+        uses: JamesIves/github-pages-deploy-action@3.7.1
+        with:
+          GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+          BRANCH: gh-pages # The branch the action should deploy to.
+          FOLDER: target # The folder the action should deploy.
+          CLEAN: false # Automatically remove deleted files from the deploy branch
