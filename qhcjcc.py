@@ -6,6 +6,7 @@
 import datetime
 import json
 import os
+import shutil
 import time
 
 import requests
@@ -24,8 +25,8 @@ contracts = {
     "A2105": "069001007",
     "HC2101": "069001005",  # 热卷
     "HC2105": "069001005",
-    "OI2101": "069001007",  # 菜籽油
-    "OI2105": "069001007",
+    "OI2101": "069001008",  # 菜籽油
+    "OI2105": "069001008",
     "Y2101": "069001007",  # 豆油
     "Y2105": "069001007",
     "Y2107": "069001007",
@@ -144,4 +145,4 @@ if os.path.exists(lastlogfile):
 for contract in contracts:
     updateContractData(contract)
 
-# txtfile.saveDict(lastlogfile, lastUpdated)
+shutil.make_archive(outDir, "zip", root_dir=outDir)
