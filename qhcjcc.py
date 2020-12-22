@@ -96,7 +96,7 @@ def updateContractData(contract):
     endDate = datetime.date.today()
     duo_datas = {}
     kong_datas = {}
-    print("Update %s ~ %s %s ……" % (beginDate, contract))
+    print("Update %s ~ %s %s ……" % (beginDate, endDate, contract))
     try:
         for i in range((endDate - beginDate).days + 1):
             day = beginDate + datetime.timedelta(days=i)
