@@ -5,7 +5,7 @@ name: qhcjcc
 
 on:
   push:
-    # branches: [ master ]
+    branches: [ master ]
   schedule:
     - cron: '0 20 * * *'
 
@@ -26,7 +26,7 @@ jobs:
         python-version: 3.9
     - name: Install dependencies 🔧
       run: pip install -r requirements.txt
-    - name: Run qhcjcc 🕷
+    - name: Run qhcjcc 🏃
       run: python qhcjcc.py
     - name: Deploy 🚀
       uses: JamesIves/github-pages-deploy-action@3.7.1
