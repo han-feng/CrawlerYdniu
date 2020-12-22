@@ -27,10 +27,10 @@ contracts = {
     # "HC2105": "069001005",
     "OI2101": "069001008",  # 菜籽油
     "OI2105": "069001008",
-    # "Y2101": "069001007",  # 豆油
-    # "Y2105": "069001007",
-    # "Y2107": "069001007",
-    # "Y2109": "069001007"
+    "Y2101": "069001007",  # 豆油
+    "Y2105": "069001007",
+    "Y2107": "069001007",
+    "Y2109": "069001007"
 }
 
 
@@ -55,7 +55,7 @@ def get_datas(date, contract, duo=True):
         + "&name=" \
         + name \
         + "&page=1"
-    print("GET " + url)
+    # print("GET %s %s %s" % (date, contract, str(duo)))
     response = requests.get(url)
     datas = json.loads(response.text)
     result = {}
@@ -96,7 +96,7 @@ def updateContractData(contract):
     endDate = datetime.date.today()
     duo_datas = {}
     kong_datas = {}
-
+    print("Update %s ~ %s %s ……" % (beginDate, contract))
     try:
         for i in range((endDate - beginDate).days + 1):
             day = beginDate + datetime.timedelta(days=i)
