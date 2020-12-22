@@ -13,7 +13,9 @@ import requests
 
 import txtfile
 
-outDir = "target/qhcjcc"
+cache_url = "https://han-feng.github.io/CrawlerYdniu/qhcjcc.zip"
+temp_dir = "target/qhcjcc"
+dist_dir = "dist"
 sleepTime = 0
 # timeOut = 60 * 40
 lastUpdated = {}
@@ -83,7 +85,7 @@ def writeTxtFile(prefix, datas):
         fileName = "".join([prefix, "-", "20", month, ".txt"])
         data = datas[month]
         print(">>>>>>", fileName)
-        txtfile.appendDict(os.path.join(outDir, fileName), data)
+        txtfile.appendDict(os.path.join(temp_dir, fileName), data)
         if i > 0:  # debug
             print(">>> Warning!")  # debug
         i += 1  # debug
@@ -135,14 +137,21 @@ def updateContractData(contract):
 
 
 # main
-makeDirs(outDir)
+makeDirs(temp_dir)
+makeDirs(dist_dir)
 
+response = requests.get(cache_url)
+if response.status_code == 200:
+    zipFile = "%s.zip" % temp_dir
+    with open(zipFile, "wb") as code:
+        code.write(response.content)
+    shutil.unpack_archive(zipFile, temp_dir)
 
-lastlogfile = os.path.join(outDir, "lastupdated.dat")
+lastlogfile = os.path.join(temp_dir, "lastupdated.dat")
 if os.path.exists(lastlogfile):
     lastUpdated = txtfile.loadDict(lastlogfile)
 
 for contract in contracts:
     updateContractData(contract)
 
-shutil.make_archive(outDir, "zip", root_dir=outDir)
+shutil.make_archive(dist_dir+"/qhcjcc", "zip", root_dir=temp_dir)
