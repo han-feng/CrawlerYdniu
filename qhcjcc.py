@@ -2,6 +2,9 @@
 # python 3.9
 # 期货成交持仓
 # 数据来源：http://m.data.eastmoney.com/futures/cjcc/
+#         http://m.data.eastmoney.com/api/futures/basedata?str=904  全部期货类型
+#         http://m.data.eastmoney.com/api/futures/GetContract?market=069001009&date=2020-12-25  合约查询
+
 
 import datetime
 import json
@@ -57,7 +60,7 @@ def get_datas(date, contract, duo=True):
         + "&name=" \
         + name \
         + "&page=1"
-    # print("GET %s %s %s" % (date, contract, str(duo)))
+    print("🦎 GET %s %s %s" % (date, contract, str(duo)))
     response = requests.get(url)
     datas = json.loads(response.text)
     result = {}
@@ -84,10 +87,10 @@ def writeTxtFile(prefix, datas):
     for month in datas.keys():
         fileName = "".join([prefix, "-", "20", month, ".txt"])
         data = datas[month]
-        print(">>>>>>", fileName)
+        print(">>>>>> 💾", fileName)
         txtfile.appendDict(os.path.join(temp_dir, fileName), data)
         if i > 0:  # debug
-            print(">>> Warning!")  # debug
+            print(">>> ⚠️ Warning!")  # debug
         i += 1  # debug
 
 
@@ -98,7 +101,7 @@ def updateContractData(contract):
     endDate = datetime.date.today()
     duo_datas = {}
     kong_datas = {}
-    print("Update %s ~ %s %s ……" % (beginDate, endDate, contract))
+    print("🛰 Update %s ~ %s %s ……" % (beginDate, endDate, contract))
     try:
         for i in range((endDate - beginDate).days + 1):
             day = beginDate + datetime.timedelta(days=i)
@@ -127,7 +130,7 @@ def updateContractData(contract):
                 monthDatas.update(dayDatas)
             lastUpdated[contract] = [day.strftime("%Y%m%d")]
     except requests.exceptions.RequestException as e:
-        print("Error: ", e)
+        print("🔥 Error: ", e)
     finally:
         if len(duo_datas) > 0:
             writeTxtFile(contract+"-D", duo_datas)
