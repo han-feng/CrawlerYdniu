@@ -4,14 +4,13 @@
 # 数据来源：http://m.data.eastmoney.com/futures/cjcc/
 #         http://m.data.eastmoney.com/api/futures/basedata?str=904  全部期货类型
 #         http://m.data.eastmoney.com/api/futures/GetContract?market=&date=2020-12-25  合约查询
-
-
-import datetime
 import os
 import shutil
 import time
+from datetime import datetime
 
 import demjson
+import pytz
 import requests
 
 import txtfile
@@ -154,7 +153,7 @@ def updateContractData(contract):
 
 
 # main
-print("", time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())))
+print("⏱", datetime.now(pytz.timezone("Asia/Shanghai")).strftime("%Y-%m-%d %H:%M:%S"))
 
 # makeDirs(temp_dir)
 # makeDirs(dist_dir)
