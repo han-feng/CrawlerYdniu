@@ -155,8 +155,8 @@ def updateContractData(contract):
 # main
 print("⏱", datetime.now(pytz.timezone("Asia/Shanghai")).strftime("%Y-%m-%d %H:%M:%S"))
 
-# makeDirs(temp_dir)
-# makeDirs(dist_dir)
+makeDirs(temp_dir)
+makeDirs(dist_dir)
 
 # response = requests.get(cache_url)
 # if response.status_code == 200:
