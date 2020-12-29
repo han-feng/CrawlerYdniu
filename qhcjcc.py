@@ -7,7 +7,7 @@
 import os
 import shutil
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import demjson
 import pytz
@@ -24,17 +24,23 @@ lastlogfile = os.path.join(temp_dir, ".lastupdated")
 
 defaultStartDate = "20200101"
 
-contracts = {
-    "A2101": "069001007",  # 大豆
-    "A2105": "069001007",
-    "HC2101": "069001005",  # 热卷
-    "HC2105": "069001005",
-    "OI2101": "069001008",  # 菜籽油
-    "OI2105": "069001008",
-    "Y2101": "069001007",  # 豆油
-    "Y2105": "069001007",
-    "Y2107": "069001007",
-    "Y2109": "069001007"
+contract_types = {
+    "A": {
+        "name": "大豆",
+        "market": "069001007"
+    },
+    "HC": {
+        "name": "热卷",
+        "market": "069001005"
+    },
+    "OI": {
+        "name": "菜籽油",
+        "market": "069001008"
+    },
+    "Y": {
+        "name": "豆油",
+        "market": "069001007"
+    },
 }
 
 
@@ -44,53 +50,71 @@ def makeDirs(dirPath):
         os.makedirs(dirPath)
 
 
-def get_contract(date):
+def get_contracts(day):
     """获得指定日期的可交易合约信息"""
-    url = "http://m.data.eastmoney.com/api/futures/GetContract?market=&date=" + date
+    url = "http://m.data.eastmoney.com/api/futures/GetContract?market=&date=" + day
     response = requests.get(url)
-    datas = demjson.decode(response.text)
+    datas = response.text
+    if len(datas.strip()) == 0:
+        return {}
     datas = demjson.decode(datas)
-    result = {}
+    if len(datas.strip()) == 0:
+        return {}
+
+    datas = demjson.decode(datas)
     if datas is None:
-        return result
+        return {}
+
+    result = {}
     for data in datas:
         result[data["value"]] = [d[1] for d in data["data"]]
     return result
 
 
-def get_datas(date, contract, duo=True):
+def get_contracts_data(day, market, contracts, duo=True):
+    """获取指定日期、指定合约集合的汇总数据"""
+    ddl = 0
+    ddlzj = 0
+    kdl = 0
+    kdlzj = 0
+    i = 0
+    for contract in contracts:
+        datas = get_contract_data(day, market, contract, duo)
+        for data in datas:
+            i += 1
+            ddl += data["Ddl"]
+            ddlzj += data["DdlZJ"]
+            kdl += data["Kdl"]
+            kdlzj += data["KdlZJ"]
+    if i > 0:
+        return {
+            day: [str(ddl), str(ddlzj), str(kdl), str(kdlzj)]
+        }
+    return None
+
+
+def get_contract_data(day, market, contract, duo=True):
+    """获取指定日期指定合约的明细数据"""
     name = ""
     if duo:
         name = "%E5%A4%9A%E5%A4%B4%E6%8C%81%E4%BB%93%E9%BE%99%E8%99%8E%E6%A6%9C"
     else:
         name = "%E7%A9%BA%E5%A4%B4%E6%8C%81%E4%BB%93%E9%BE%99%E8%99%8E%E6%A6%9C"
     url = "http://m.data.eastmoney.com/api/futures/GetQhcjcc?market=" \
-        + contracts[contract] \
+        + market \
         + "&date=" \
-        + date \
+        + day \
         + "&contract=" \
         + contract \
         + "&name=" \
         + name \
         + "&page=1"
-    print("🦎 GET %s %s %s" % (date, contract, str(duo)))
+    print("🦎 GET %s %s %s" % (day, contract, ("D" if duo else "K")))
     response = requests.get(url)
     datas = demjson.decode(response.text)
-    result = {}
     if datas is None:
-        return result
-    i = 1
-    for data in datas:
-        result["%s,%02d" % (date, i)] = [
-            data["Code"],
-            data["Name"],
-            str(data["Ddl"]),
-            str(data["DdlZJ"]),
-            str(data["Kdl"]),
-            str(data["KdlZJ"])
-        ]
-        i = i+1
-    return result
+        return []
+    return datas
 
 
 def writeTxtFile(prefix, datas):
@@ -107,48 +131,55 @@ def writeTxtFile(prefix, datas):
         i += 1  # debug
 
 
-def updateContractData(contract):
-    """更新指定合约、指定起始日期的数据"""
-    beginDate = datetime.datetime.strptime(
-        lastUpdated.get(contract, [defaultStartDate])[0], "%Y%m%d").date()
-    endDate = datetime.date.today()
+def update_contract_data(type):
+    """更新指定合约类型数据"""
+    beginDate = datetime.strptime(lastUpdated.get(
+        type, [defaultStartDate])[0], "%Y%m%d").date()
+    endDate = datetime.now(pytz.timezone("Asia/Shanghai")).date()
     duo_datas = {}
     kong_datas = {}
-    print("🛰 Update %s ~ %s %s ……" % (beginDate, endDate, contract))
+    print("🛰 Update %s ~ %s %s ……" % (beginDate, endDate, type))
     try:
         for i in range((endDate - beginDate).days + 1):
-            day = beginDate + datetime.timedelta(days=i)
-            key = day.strftime("%y%m%d")
+            day = beginDate + timedelta(days=i)
+            key = day.strftime("%y%m")
             if i > 0:
                 if day.day == 1:  # 每月开始，保存上月数据
-                    writeTxtFile(contract+"-D", duo_datas)
-                    writeTxtFile(contract+"-K", kong_datas)
+                    writeTxtFile(type+"-D", duo_datas)
+                    writeTxtFile(type+"-K", kong_datas)
                     txtfile.saveDict(lastlogfile, lastUpdated)
                     duo_datas = {}
                     kong_datas = {}
                 if sleepTime > 0:
                     time.sleep(sleepTime)
-            """
-            TODO
-            FIXME
-            """
+
             dayStr = day.strftime("%Y-%m-%d")
-            dayDatas = get_datas(dayStr, contract)
-            if len(dayDatas) > 0:
-                monthDatas = duo_datas.setdefault(key[:4], {})
+            types = get_contracts(dayStr)  # 获取指定日期的可交易合约集合
+            contracts = types.get(type)
+            if contracts is None:
+                continue
+
+            market = contract_types[type]["market"]
+            print("%s %s[%s] 可交易合约：" % (dayStr, type, market), contracts)
+
+            dayDatas = get_contracts_data(dayStr, market, contracts)
+            if dayDatas is not None:
+                monthDatas = duo_datas.setdefault(key, {})
                 monthDatas.update(dayDatas)
-            dayDatas = get_datas(dayStr, contract, duo=False)
-            if len(dayDatas) > 0:
-                monthDatas = kong_datas.setdefault(key[:4], {})
+            dayDatas = get_contracts_data(
+                dayStr, market, contracts, duo=False)
+            if dayDatas is not None:
+                monthDatas = kong_datas.setdefault(key, {})
                 monthDatas.update(dayDatas)
-            lastUpdated[contract] = [day.strftime("%Y%m%d")]
+
+            lastUpdated[type] = [day.strftime("%Y%m%d")]
     except requests.exceptions.RequestException as e:
         print("🔥 Error: ", e)
     finally:
         if len(duo_datas) > 0:
-            writeTxtFile(contract+"-D", duo_datas)
+            writeTxtFile(type+"-D", duo_datas)
         if len(kong_datas) > 0:
-            writeTxtFile(contract+"-K", kong_datas)
+            writeTxtFile(type+"-K", kong_datas)
         txtfile.saveDict(lastlogfile, lastUpdated)
 
 
@@ -158,18 +189,17 @@ print("⏱", datetime.now(pytz.timezone("Asia/Shanghai")).strftime("%Y-%m-%d %H:
 makeDirs(temp_dir)
 makeDirs(dist_dir)
 
-# response = requests.get(cache_url)
-# if response.status_code == 200:
-#     zipFile = "%s.zip" % temp_dir
-#     with open(zipFile, "wb") as code:
-#         code.write(response.content)
-#     shutil.unpack_archive(zipFile, temp_dir)
+response = requests.get(cache_url)
+if response.status_code == 200:
+    zipFile = "%s.zip" % temp_dir
+    with open(zipFile, "wb") as code:
+        code.write(response.content)
+    shutil.unpack_archive(zipFile, temp_dir)
 
-# if os.path.exists(lastlogfile):
-#     lastUpdated = txtfile.loadDict(lastlogfile)
+if os.path.exists(lastlogfile):
+    lastUpdated = txtfile.loadDict(lastlogfile)
 
-# """TODO 调整为日期循环"""
-# for contract in contracts:
-#     updateContractData(contract)
+for type in contract_types:
+    update_contract_data(type)
 
-# shutil.make_archive(dist_dir+"/qhcjcc", "zip", root_dir=temp_dir)
+shutil.make_archive(dist_dir+"/qhcjcc", "zip", root_dir=temp_dir)
