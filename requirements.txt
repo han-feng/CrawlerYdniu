@@ -1,4 +1,5 @@
 # pytz
+demjson
 requests
 # bs4
 # lxml

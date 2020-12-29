@@ -3,15 +3,15 @@
 # 期货成交持仓
 # 数据来源：http://m.data.eastmoney.com/futures/cjcc/
 #         http://m.data.eastmoney.com/api/futures/basedata?str=904  全部期货类型
-#         http://m.data.eastmoney.com/api/futures/GetContract?market=069001009&date=2020-12-25  合约查询
+#         http://m.data.eastmoney.com/api/futures/GetContract?market=&date=2020-12-25  合约查询
 
 
 import datetime
-import json
 import os
 import shutil
 import time
 
+import demjson
 import requests
 
 import txtfile
@@ -20,8 +20,8 @@ cache_url = "https://han-feng.github.io/CrawlerYdniu/qhcjcc.zip"
 temp_dir = "target/qhcjcc"
 dist_dir = "dist"
 sleepTime = 0
-# timeOut = 60 * 40
 lastUpdated = {}
+lastlogfile = os.path.join(temp_dir, ".lastupdated")
 
 defaultStartDate = "20200101"
 
@@ -45,6 +45,20 @@ def makeDirs(dirPath):
         os.makedirs(dirPath)
 
 
+def get_contract(date):
+    """获得指定日期的可交易合约信息"""
+    url = "http://m.data.eastmoney.com/api/futures/GetContract?market=&date=" + date
+    response = requests.get(url)
+    datas = demjson.decode(response.text)
+    datas = demjson.decode(datas)
+    result = {}
+    if datas is None:
+        return result
+    for data in datas:
+        result[data["value"]] = [d[1] for d in data["data"]]
+    return result
+
+
 def get_datas(date, contract, duo=True):
     name = ""
     if duo:
@@ -62,7 +76,7 @@ def get_datas(date, contract, duo=True):
         + "&page=1"
     print("🦎 GET %s %s %s" % (date, contract, str(duo)))
     response = requests.get(url)
-    datas = json.loads(response.text)
+    datas = demjson.decode(response.text)
     result = {}
     if datas is None:
         return result
@@ -140,21 +154,23 @@ def updateContractData(contract):
 
 
 # main
-makeDirs(temp_dir)
-makeDirs(dist_dir)
+print("", time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())))
 
-response = requests.get(cache_url)
-if response.status_code == 200:
-    zipFile = "%s.zip" % temp_dir
-    with open(zipFile, "wb") as code:
-        code.write(response.content)
-    shutil.unpack_archive(zipFile, temp_dir)
+# makeDirs(temp_dir)
+# makeDirs(dist_dir)
 
-lastlogfile = os.path.join(temp_dir, "lastupdated.dat")
-if os.path.exists(lastlogfile):
-    lastUpdated = txtfile.loadDict(lastlogfile)
+# response = requests.get(cache_url)
+# if response.status_code == 200:
+#     zipFile = "%s.zip" % temp_dir
+#     with open(zipFile, "wb") as code:
+#         code.write(response.content)
+#     shutil.unpack_archive(zipFile, temp_dir)
 
-for contract in contracts:
-    updateContractData(contract)
+# if os.path.exists(lastlogfile):
+#     lastUpdated = txtfile.loadDict(lastlogfile)
 
-shutil.make_archive(dist_dir+"/qhcjcc", "zip", root_dir=temp_dir)
+# """TODO 调整为日期循环"""
+# for contract in contracts:
+#     updateContractData(contract)
+
+# shutil.make_archive(dist_dir+"/qhcjcc", "zip", root_dir=temp_dir)
