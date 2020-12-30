@@ -150,12 +150,14 @@ def update_contract_data(type):
                     txtfile.saveDict(lastlogfile, lastUpdated)
                     duo_datas = {}
                     kong_datas = {}
-                if sleepTime > 0:
-                    time.sleep(sleepTime)
+
+            # TODO 增加跳过周末的逻辑
 
             dayStr = day.strftime("%Y-%m-%d")
             types = get_contracts(dayStr)  # 获取指定日期的可交易合约集合
             contracts = types.get(type)
+            if sleepTime > 0:
+                time.sleep(sleepTime)
             if contracts is None:
                 continue
 
@@ -166,13 +168,17 @@ def update_contract_data(type):
             if dayDatas is not None:
                 monthDatas = duo_datas.setdefault(key, {})
                 monthDatas.update(dayDatas)
+            if sleepTime > 0:
+                time.sleep(sleepTime)
             dayDatas = get_contracts_data(
                 dayStr, market, contracts, duo=False)
             if dayDatas is not None:
                 monthDatas = kong_datas.setdefault(key, {})
                 monthDatas.update(dayDatas)
-
             lastUpdated[type] = [day.strftime("%Y%m%d")]
+
+            if sleepTime > 0:
+                time.sleep(sleepTime)
     except requests.exceptions.RequestException as e:
         print("🔥 Error: ", e)
     finally:
