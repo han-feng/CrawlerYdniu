@@ -151,7 +151,9 @@ def update_contract_data(type):
                     duo_datas = {}
                     kong_datas = {}
 
-            # TODO 增加跳过周末的逻辑
+            if day.isoweekday() in [6, 7]:
+                print("📅 %s Weekend off 🏠🎉🍱💤" % day)
+                continue
 
             dayStr = day.strftime("%Y-%m-%d")
             types = get_contracts(dayStr)  # 获取指定日期的可交易合约集合
