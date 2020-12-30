@@ -153,6 +153,7 @@ def update_contract_data(type):
 
             if day.isoweekday() in [6, 7]:
                 print("📅 %s Weekend off 🏠🎉🍱💤" % day)
+                lastUpdated[type] = [day.strftime("%Y%m%d")]
                 continue
 
             dayStr = day.strftime("%Y-%m-%d")
@@ -161,6 +162,7 @@ def update_contract_data(type):
             if sleepTime > 0:
                 time.sleep(sleepTime)
             if contracts is None:
+                lastUpdated[type] = [day.strftime("%Y%m%d")]
                 continue
 
             market = contract_types[type]["market"]
