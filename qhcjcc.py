@@ -194,7 +194,9 @@ def update_contract_data(type):
 
 
 # main
-print("⏱", datetime.now(pytz.timezone("Asia/Shanghai")).strftime("%Y-%m-%d %H:%M:%S"))
+print("⏰", datetime.now(pytz.timezone("Asia/Shanghai")
+                        ).strftime("%Y-%m-%d %A %H:%M:%S"))
+print("📅", datetime.now().isoweekday())
 
 makeDirs(temp_dir)
 makeDirs(dist_dir)
