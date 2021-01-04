@@ -36,16 +36,18 @@ def saveDict(filePath, dict):
 # saveDict end
 
 
-# 追加 Dictionary 到文本文件，不会覆盖已存在的相同 key 值数据
-def appendDict(filePath, dict):
+# 追加 Dictionary 到文本文件
+def appendDict(filePath, dict, cover=False):
     if not os.path.exists(filePath):
         saveDict(filePath, dict)
         return
     oldDict = loadDict(filePath)
-    newDict = {}
-    for key in dict.keys():
-        if not oldDict.__contains__(key):
-            newDict[key] = dict[key]
+    if cover:
+        newDict = oldDict
+        newDict.update(dict)
+    else:
+        newDict = dict.copy()
+        newDict.update(oldDict)
     lines = _dictToLines(newDict)
     with open(filePath, "a", encoding='utf-8') as f:
         f.writelines(lines)

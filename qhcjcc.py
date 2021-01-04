@@ -44,7 +44,7 @@ contract_types = {
 }
 
 
-def makeDirs(dirPath):
+def make_dirs(dirPath):
     """批量建立文件夹"""
     if not os.path.exists(dirPath):
         os.makedirs(dirPath)
@@ -117,7 +117,7 @@ def get_contract_data(day, market, contract, duo=True):
     return datas
 
 
-def writeTxtFile(prefix, datas):
+def write_txtfile(prefix, datas):
     """按月份分文件处理"""
     i = 0  # debug
     # print(datas)
@@ -125,7 +125,7 @@ def writeTxtFile(prefix, datas):
         fileName = "".join([prefix, "-", "20", month, ".txt"])
         data = datas[month]
         print(">>>>>> 💾", fileName)
-        txtfile.appendDict(os.path.join(temp_dir, fileName), data)
+        txtfile.appendDict(os.path.join(temp_dir, fileName), data, cover=True)
         if i > 0:  # debug
             print(">>> ⚠️ Warning!")  # debug
         i += 1  # debug
@@ -145,8 +145,8 @@ def update_contract_data(type):
             key = day.strftime("%y%m")
             if i > 0:
                 if day.day == 1:  # 每月开始，保存上月数据
-                    writeTxtFile(type+"-D", duo_datas)
-                    writeTxtFile(type+"-K", kong_datas)
+                    write_txtfile(type+"-D", duo_datas)
+                    write_txtfile(type+"-K", kong_datas)
                     txtfile.saveDict(lastlogfile, lastUpdated)
                     duo_datas = {}
                     kong_datas = {}
@@ -187,9 +187,9 @@ def update_contract_data(type):
         print("🔥 Error: ", e)
     finally:
         if len(duo_datas) > 0:
-            writeTxtFile(type+"-D", duo_datas)
+            write_txtfile(type+"-D", duo_datas)
         if len(kong_datas) > 0:
-            writeTxtFile(type+"-K", kong_datas)
+            write_txtfile(type+"-K", kong_datas)
         txtfile.saveDict(lastlogfile, lastUpdated)
 
 
@@ -197,8 +197,8 @@ def update_contract_data(type):
 print(datetime.now(pytz.timezone("Asia/Shanghai")
                    ).strftime("📅 %Y-%m-%d %A\n⏰ %H:%M:%S %Z"))
 
-makeDirs(temp_dir)
-makeDirs(dist_dir)
+make_dirs(temp_dir)
+make_dirs(dist_dir)
 
 response = requests.get(cache_url)
 if response.status_code == 200:
