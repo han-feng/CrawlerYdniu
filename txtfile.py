@@ -49,7 +49,7 @@ def appendDict(filePath, dict, cover=False):
         newDict = dict.copy()
         newDict.update(oldDict)
     lines = _dictToLines(newDict)
-    with open(filePath, "a", encoding='utf-8') as f:
+    with open(filePath, "w", encoding='utf-8') as f:
         f.writelines(lines)
 # appendDict end
 
