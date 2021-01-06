@@ -22,7 +22,7 @@ sleepTime = 0
 lastUpdated = {}
 lastlogfile = os.path.join(temp_dir, ".lastupdated")
 
-defaultStartDate = "20200101"
+defaultStartDate = "20200701"
 
 contract_types = {
     "A": {
@@ -52,7 +52,7 @@ def make_dirs(dirPath):
 
 def get_contracts(day):
     """获得指定日期的可交易合约信息"""
-    url = "http://m.data.eastmoney.com/api/futures/GetContract?market=&date=" + day
+    url = f"http://m.data.eastmoney.com/api/futures/GetContract?market=&date={day}"
     response = requests.get(url)
     datas = response.text
     if len(datas.strip()) == 0:
@@ -97,18 +97,10 @@ def get_contract_data(day, market, contract, duo=True):
     """获取指定日期指定合约的明细数据"""
     name = ""
     if duo:
-        name = "%E5%A4%9A%E5%A4%B4%E6%8C%81%E4%BB%93%E9%BE%99%E8%99%8E%E6%A6%9C"
+        name = r"%E5%A4%9A%E5%A4%B4%E6%8C%81%E4%BB%93%E9%BE%99%E8%99%8E%E6%A6%9C"
     else:
-        name = "%E7%A9%BA%E5%A4%B4%E6%8C%81%E4%BB%93%E9%BE%99%E8%99%8E%E6%A6%9C"
-    url = "http://m.data.eastmoney.com/api/futures/GetQhcjcc?market=" \
-        + market \
-        + "&date=" \
-        + day \
-        + "&contract=" \
-        + contract \
-        + "&name=" \
-        + name \
-        + "&page=1"
+        name = r"%E7%A9%BA%E5%A4%B4%E6%8C%81%E4%BB%93%E9%BE%99%E8%99%8E%E6%A6%9C"
+    url = f"http://m.data.eastmoney.com/api/futures/GetQhcjcc?market={market}&date={day}&contract={contract}&name={name}&page=1"
     print("🦎 GET %s %s %s" % (day, contract, ("D" if duo else "K")))
     response = requests.get(url)
     datas = demjson.decode(response.text)
