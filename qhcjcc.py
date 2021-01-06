@@ -116,7 +116,6 @@ def write_txtfile(prefix, datas):
     for month in datas.keys():
         fileName = "".join([prefix, "-", "20", month, ".txt"])
         data = datas[month]
-        print(">>>>>> 💾", fileName)
         txtfile.appendDict(os.path.join(temp_dir, fileName), data, cover=True)
         if i > 0:  # debug
             print(">>> ⚠️ Warning!")  # debug

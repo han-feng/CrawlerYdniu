@@ -42,6 +42,8 @@ def appendDict(filePath, dict, cover=False):
         saveDict(filePath, dict)
         return
     oldDict = loadDict(filePath)
+    if dict == oldDict:
+        return
     if cover:
         newDict = oldDict
         newDict.update(dict)
@@ -49,6 +51,9 @@ def appendDict(filePath, dict, cover=False):
         newDict = dict.copy()
         newDict.update(oldDict)
     lines = _dictToLines(newDict)
+    if len(lines) <= 0:
+        return
+    print(">>>>>> 💾", filePath)
     with open(filePath, "w", encoding='utf-8') as f:
         f.writelines(lines)
 # appendDict end
