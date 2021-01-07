@@ -49,6 +49,7 @@ def appendDict(filePath, dict, cover=False):
         newDict = dict.copy()
         newDict.update(oldDict)
     if newDict == oldDict:
+        print("🔛 No modification", filePath)
         return
     lines = _dictToLines(newDict)
     if len(lines) <= 0:
