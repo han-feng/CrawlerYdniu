@@ -42,14 +42,14 @@ def appendDict(filePath, dict, cover=False):
         saveDict(filePath, dict)
         return
     oldDict = loadDict(filePath)
-    if dict == oldDict:
-        return
     if cover:
         newDict = oldDict
         newDict.update(dict)
     else:
         newDict = dict.copy()
         newDict.update(oldDict)
+    if newDict == oldDict:
+        return
     lines = _dictToLines(newDict)
     if len(lines) <= 0:
         return
