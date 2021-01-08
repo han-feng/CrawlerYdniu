@@ -43,7 +43,7 @@ def appendDict(filePath, dict, cover=False):
         return
     oldDict = loadDict(filePath)
     if cover:
-        newDict = oldDict
+        newDict = oldDict.copy()
         newDict.update(dict)
     else:
         newDict = dict.copy()
