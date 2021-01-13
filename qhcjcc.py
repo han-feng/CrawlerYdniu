@@ -8,6 +8,7 @@ import os
 import shutil
 import time
 from datetime import datetime, timedelta
+from functools import lru_cache
 
 import demjson
 import pytz
@@ -50,9 +51,11 @@ def make_dirs(dirPath):
         os.makedirs(dirPath)
 
 
+@lru_cache(maxsize=10)
 def get_contracts(day):
     """获得指定日期的可交易合约信息"""
     url = f"http://m.data.eastmoney.com/api/futures/GetContract?market=&date={day}"
+    print("  🕷 Get contract %s" % day)
     response = requests.get(url)
     datas = response.text
     if len(datas.strip()) == 0:
@@ -101,7 +104,7 @@ def get_contract_data(day, market, contract, duo=True):
     else:
         name = r"%E7%A9%BA%E5%A4%B4%E6%8C%81%E4%BB%93%E9%BE%99%E8%99%8E%E6%A6%9C"
     url = f"http://m.data.eastmoney.com/api/futures/GetQhcjcc?market={market}&date={day}&contract={contract}&name={name}&page=1"
-    print("  🕷 GET %s %s %s" % (day, contract, ("D" if duo else "K")))
+    print("  🕷 Get %s %s %s" % (day, contract, ("D" if duo else "K")))
     response = requests.get(url)
     datas = demjson.decode(response.text)
     if datas is None:
@@ -154,10 +157,12 @@ def update_contract_data(type):
                 time.sleep(sleepTime)
             if contracts is None:
                 lastUpdated[type] = [day.strftime("%Y%m%d")]
+                print("  %s %s no contract" % (dayStr, type))
                 continue
 
             market = contract_types[type]["market"]
-            print("▶️ %s %s[%s] 可交易合约：" % (dayStr, type, market), contracts)
+            print("▶️ %s %s[%s] contracts：" %
+                  (dayStr, type, market), contracts)
 
             dayDatas = get_contracts_data(dayStr, market, contracts)
             if dayDatas is not None:
