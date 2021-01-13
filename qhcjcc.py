@@ -51,12 +51,26 @@ def make_dirs(dirPath):
         os.makedirs(dirPath)
 
 
+_http_get_last_time_ = 0
+
+
+def http_get(url):
+    global _http_get_last_time_
+    if sleepTime > 0 and time.time()-_http_get_last_time_ < sleepTime:
+        s = _http_get_last_time_+sleepTime-time.time()
+        print("🐞 sleep %f" % s)
+        time.sleep(s)
+    response = requests.get(url)
+    _http_get_last_time_ = time.time()  # 秒
+    return response
+
+
 @lru_cache(maxsize=10)
 def get_contracts(day):
     """获得指定日期的可交易合约信息"""
     url = f"http://m.data.eastmoney.com/api/futures/GetContract?market=&date={day}"
     print("  🕷 Get contract %s" % day)
-    response = requests.get(url)
+    response = http_get(url)
     datas = response.text
     if len(datas.strip()) == 0:
         return {}
@@ -105,7 +119,7 @@ def get_contract_data(day, market, contract, duo=True):
         name = r"%E7%A9%BA%E5%A4%B4%E6%8C%81%E4%BB%93%E9%BE%99%E8%99%8E%E6%A6%9C"
     url = f"http://m.data.eastmoney.com/api/futures/GetQhcjcc?market={market}&date={day}&contract={contract}&name={name}&page=1"
     print("  🕷 Get %s %s %s" % (day, contract, ("D" if duo else "K")))
-    response = requests.get(url)
+    response = http_get(url)
     datas = demjson.decode(response.text)
     if datas is None:
         return []
@@ -153,8 +167,6 @@ def update_contract_data(type):
             dayStr = day.strftime("%Y-%m-%d")
             types = get_contracts(dayStr)  # 获取指定日期的可交易合约集合
             contracts = types.get(type)
-            if sleepTime > 0:
-                time.sleep(sleepTime)
             if contracts is None:
                 lastUpdated[type] = [day.strftime("%Y%m%d")]
                 print("  %s %s no contract" % (dayStr, type))
@@ -168,17 +180,12 @@ def update_contract_data(type):
             if dayDatas is not None:
                 monthDatas = duo_datas.setdefault(key, {})
                 monthDatas.update(dayDatas)
-            if sleepTime > 0:
-                time.sleep(sleepTime)
             dayDatas = get_contracts_data(
                 dayStr, market, contracts, duo=False)
             if dayDatas is not None:
                 monthDatas = kong_datas.setdefault(key, {})
                 monthDatas.update(dayDatas)
             lastUpdated[type] = [day.strftime("%Y%m%d")]
-
-            if sleepTime > 0:
-                time.sleep(sleepTime)
     except requests.exceptions.RequestException as e:
         print("  🔥 Error: ", e)
     finally:
