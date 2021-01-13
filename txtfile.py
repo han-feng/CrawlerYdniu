@@ -49,12 +49,12 @@ def appendDict(filePath, dict, cover=False):
         newDict = dict.copy()
         newDict.update(oldDict)
     if newDict == oldDict:
-        print("🔛 No modification", filePath)
+        print("🔛 No modification %s" % filePath)
         return
     lines = _dictToLines(newDict)
     if len(lines) <= 0:
         return
-    print(">>>>>> 💾", filePath)
+    print("💾 save to %s" % filePath)
     with open(filePath, "w", encoding='utf-8') as f:
         f.writelines(lines)
 # appendDict end

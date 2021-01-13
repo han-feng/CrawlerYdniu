@@ -101,7 +101,7 @@ def get_contract_data(day, market, contract, duo=True):
     else:
         name = r"%E7%A9%BA%E5%A4%B4%E6%8C%81%E4%BB%93%E9%BE%99%E8%99%8E%E6%A6%9C"
     url = f"http://m.data.eastmoney.com/api/futures/GetQhcjcc?market={market}&date={day}&contract={contract}&name={name}&page=1"
-    print("🦎 GET %s %s %s" % (day, contract, ("D" if duo else "K")))
+    print("  🕷 GET %s %s %s" % (day, contract, ("D" if duo else "K")))
     response = requests.get(url)
     datas = demjson.decode(response.text)
     if datas is None:
@@ -118,7 +118,7 @@ def write_txtfile(prefix, datas):
         data = datas[month]
         txtfile.appendDict(os.path.join(temp_dir, fileName), data, cover=True)
         if i > 0:  # debug
-            print(">>> ⚠️ Warning!")  # debug
+            print("  ⚠️ Warning!")  # debug
         i += 1  # debug
 
 
@@ -143,7 +143,7 @@ def update_contract_data(type):
                     kong_datas = {}
 
             if day.isoweekday() in [6, 7]:
-                print("📅 %s Weekend off 🏠🎉🍱💤" % day)
+                print("  💤 %s Weekend off" % day)
                 lastUpdated[type] = [day.strftime("%Y%m%d")]
                 continue
 
@@ -157,7 +157,7 @@ def update_contract_data(type):
                 continue
 
             market = contract_types[type]["market"]
-            print("%s %s[%s] 可交易合约：" % (dayStr, type, market), contracts)
+            print("▶️ %s %s[%s] 可交易合约：" % (dayStr, type, market), contracts)
 
             dayDatas = get_contracts_data(dayStr, market, contracts)
             if dayDatas is not None:
@@ -175,7 +175,7 @@ def update_contract_data(type):
             if sleepTime > 0:
                 time.sleep(sleepTime)
     except requests.exceptions.RequestException as e:
-        print("🔥 Error: ", e)
+        print("  🔥 Error: ", e)
     finally:
         if len(duo_datas) > 0:
             write_txtfile(type+"-D", duo_datas)
