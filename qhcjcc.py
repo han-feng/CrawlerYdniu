@@ -65,7 +65,7 @@ def http_get(url):
     return response
 
 
-@lru_cache(maxsize=10)
+@lru_cache(maxsize=366)  # 缓存一年数据
 def get_contracts(day):
     """获得指定日期的可交易合约信息"""
     url = f"http://m.data.eastmoney.com/api/futures/GetContract?market=&date={day}"
